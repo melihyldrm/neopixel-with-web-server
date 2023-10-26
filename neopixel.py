@@ -6,7 +6,7 @@ import neopixel
 import math
 import time
 
-# Wi-Fi ağına bağlanmak için gerekli bilgileri girin
+#Enter the required information to connect to the Wi-Fi network
 SSID = "yourWifiName"
 PASSWORD = "yourWifiPassword"
 
@@ -15,28 +15,28 @@ sta_if = network.WLAN(network.STA_IF)
 sta_if.active(True)
 sta_if.connect(SSID, PASSWORD)
 
-# Bağlantıyı kontrol et
+# Check the connection
 while not sta_if.isconnected():
     pass
 
-# Bağlandıktan sonra IP adresini yazdır
+# Print IP address after connecting
 print("Bağlandı. IP adresi:", sta_if.ifconfig()[0])
 
-# Define the pin number and number of LEDs in your NeoPixel strip
+#Define the pin number and number of LEDs in your NeoPixel strip
 pin_num = 2
 num_leds = 8
 
 # Initialize the NeoPixel strip
 np = neopixel.NeoPixel(machine.Pin(pin_num), num_leds)
 
-# LED durumunu tutacak değişken
+#Variable to hold LED status
 led_on = False
 
-# Web sunucusunun IP adresi ve port numarası
+#IP address and port number of the web server
 IP_ADDRESS = sta_if.ifconfig()[0]
 PORT = 80
 
-# HTTP GET isteğine yanıt veren fonksiyon
+#Function that responds to HTTP GET request
 def handle_request(request):
     global led_on
     if ure.search("GET /on", request):
@@ -44,7 +44,7 @@ def handle_request(request):
     elif ure.search("GET /off", request):
         led_on = False
     
-    # HTTP yanıtı oluştur
+    #Generate HTTP response
     response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
     response += "<html><body>"
     response += "<h1>LED Durumu: {}</h1>".format("Açık" if led_on else "Kapalı")
@@ -54,13 +54,15 @@ def handle_request(request):
     
     return response
 
-# Web sunucusunu başlat
+#Start web server
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((IP_ADDRESS, PORT))
 s.listen(5)
 print("Web sunucusu çalışıyor. IP adresi:", IP_ADDRESS, "Port:", PORT)
 
 offset=0.0
+
+# Function to set rainbow colors on the LED strip
 def set_rainbow_colors(offset):
     for i in range(num_leds):
         hue = ((i / num_leds) * 360.0 + offset) % 360.0  # Calculate the hue value based on the LED index and offset
@@ -89,7 +91,7 @@ def hsv_to_rgb(h, s, v):
         r, g, b = c, 0, x
     return int((r + m) * 255), int((g + m) * 255), int((b + m) * 255)
 
-# Web sunucusuyla bağlantıyı kabul et ve istekleri işle
+#Accept connection to web server and process requests
 while True:
     conn, addr = s.accept()
     request = conn.recv(1024)
@@ -100,14 +102,14 @@ while True:
     conn.send(response)
     conn.close()
     
-    # LED durumuna göre NeoPixel strip'i güncelle
+    #Update NeoPixel strip based on LED status
     if led_on:
         set_rainbow_colors(offset)
     else:
         np.fill((0, 0, 0))
         np.write()
 
-# Function to set rainbow colors on the LED strip
+
 
 
 
